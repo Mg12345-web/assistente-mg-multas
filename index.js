@@ -1,26 +1,26 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { Configuration, OpenAIApi } from 'openai';
+import OpenAI from 'openai';
 
 dotenv.config();
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
 });
-const openai = new OpenAIApi(configuration);
 
-const promptBase = `... (mantém o texto do prompt aqui)`;
+const promptBase = `... (insira aqui o prompt completo de vendas MG Multas)`;
 
 app.post('/chat', async (req, res) => {
   const { message } = req.body;
   if (!message) return res.status(400).json({ error: 'Mensagem obrigatória.' });
 
   try {
-    const response = await openai.createChatCompletion({
+    const chat = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [
         { role: 'system', content: promptBase },
@@ -29,8 +29,7 @@ app.post('/chat', async (req, res) => {
       temperature: 0.3
     });
 
-    const reply = response.data.choices[0].message.content;
-    res.json({ reply });
+    res.json({ reply: chat.choices[0].message.content });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erro ao gerar resposta da IA.' });
