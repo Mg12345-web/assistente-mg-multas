@@ -1,47 +1,29 @@
-import fs from 'fs/promises';
-import pdfParse from 'pdf-parse';
+// script para extrair infrações do MBFT (versão inicial, ajustável)
+import fs from 'fs';
+import pdf from 'pdf-parse';
 
-const caminhoPDF = './MBVT20222.pdf';
-const caminhoJSON = './mbft.json';
+async function extrairInfracoes(caminhoPDF) {
+  const buffer = fs.readFileSync(caminhoPDF);
+  const data = await pdf(buffer);
+  const texto = data.text;
 
-async function extrairInfraçõesDoPDF() {
-  try {
-    const buffer = await fs.readFile(caminhoPDF);
-    const data = await pdfParse(buffer);
-    const texto = data.text;
+  // Regex genérico baseado no padrão visual dos exemplos
+  const padrao = /Código do Enquadramento:\s*(\d{3}-\d{2})[\s\S]*?Tipificação Resumida:\s*(.*?)\s*Amparo Legal:[\s\S]*?Gravidade:\s*(.*?)\s*Penalidade:[\s\S]*?Valor:\s*R\$\s*([\d,.]+)/g;
 
-    const linhas = texto.split('\n');
-    const infracoes = [];
+  const infracoes = [];
+  let match;
 
-    for (let i = 0; i < linhas.length; i++) {
-      const linha = linhas[i];
-
-      // Regex que identifica linhas de infração com código no padrão "XXX-XX"
-      const match = linha.match(/(\d{3}-\d{2})\s+-\s+(.*)/);
-      if (match) {
-        const codigo = match[1];
-        const descricao = match[2].trim();
-
-        // Procurar informações adicionais como gravidade, valor, pontuação
-        const gravidade = linhas[i + 1]?.match(/Gravidade:\s+(.*)/)?.[1] || '';
-        const valor = linhas[i + 2]?.match(/Valor:\s+(.*)/)?.[1] || '';
-        const pontuacao = linhas[i + 3]?.match(/Pontuação:\s+(\d+)/)?.[1] || '';
-
-        infracoes.push({
-          codigo,
-          descricao,
-          gravidade,
-          valor,
-          pontuacao: parseInt(pontuacao || 0)
-        });
-      }
-    }
-
-    await fs.writeFile(caminhoJSON, JSON.stringify(infracoes, null, 2), 'utf-8');
-    console.log(`✅ ${infracoes.length} infrações salvas no mbft.json`);
-  } catch (err) {
-    console.error('❌ Erro ao extrair infrações:', err.message);
+  while ((match = padrao.exec(texto)) !== null) {
+    infracoes.push({
+      codigo: match[1],
+      descricao: match[2],
+      gravidade: match[3],
+      valor: `R$ ${match[4]}`
+    });
   }
+
+  fs.writeFileSync('mbft.json', JSON.stringify(infracoes, null, 2), 'utf-8');
+  console.log(`✅ ${infracoes.length} infrações extraídas para mbft.json.`);
 }
 
-extrairInfraçõesDoPDF();
+extrairInfracoes('MBVT20222.pdf');
