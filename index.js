@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import fs from 'fs/promises';
+import { existsSync } from 'fs';
+import path from 'path';
 import pkg from 'pdf-parse';
 const pdf = pkg.default;
 import OpenAI from 'openai';
@@ -18,12 +20,17 @@ let textoMBFT = '';
 
 async function carregarMBFT() {
   try {
-    const buffer = await fs.readFile('./MBVT20222.pdf');
+    const pdfPath = path.resolve('./MBVT20222.pdf');
+    if (!existsSync(pdfPath)) {
+      console.error('❌ Arquivo MBVT20222.pdf não encontrado em:', pdfPath);
+      return;
+    }
+    const buffer = await fs.readFile(pdfPath);
     const data = await pdf(buffer);
     textoMBFT = data.text;
     console.log("✅ MBFT carregado com sucesso.");
   } catch (error) {
-    console.error("Erro ao carregar MBFT:", error);
+    console.error("❌ Erro ao carregar MBFT:", error);
   }
 }
 
@@ -101,7 +108,6 @@ app.get('/', (req, res) => {
   res.send('Assistente MG Multas online');
 });
 
-console.log("📄 Buscando arquivo:", process.cwd() + '/MBVT20222.pdf');
 const port = process.env.PORT || 3000;
 app.listen(port, async () => {
   await carregarMBFT();
