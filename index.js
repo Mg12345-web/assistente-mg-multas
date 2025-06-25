@@ -78,20 +78,6 @@ Pode aplicar até 15% de desconto se a vendedora disser que o cliente não paga.
 
 Você pode rir junto se ela brincar, mas mantenha sempre o foco na venda.`;
 
-async function buscarNoMBFT(termo) {
-  const data = await pdf(dataBuffer);
-  const texto = data.text;
-  const regex = new RegExp(termo, 'i');
-  const index = texto.search(regex);
-  if (index !== -1) {
-    const trecho = texto.slice(index, index + 800);
-    return `📘 Achei essa referência no MBFT:
-
-${trecho.trim()}`;
-  }
-  return null;
-}
-
 app.post('/chat', async (req, res) => {
   const { message } = req.body;
   if (!message) return res.status(400).json({ error: 'Mensagem obrigatória.' });
