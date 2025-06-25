@@ -2,7 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import fs from 'fs/promises';
-import pdf from 'pdf-parse';
+import pkg from 'pdf-parse';
+const pdf = pkg.default;
 import OpenAI from 'openai';
 
 dotenv.config();
