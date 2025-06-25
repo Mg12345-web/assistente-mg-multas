@@ -1,8 +1,7 @@
-// index.js
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import fs from 'fs';
+import fs from 'fs/promises';
 import pdf from 'pdf-parse';
 import OpenAI from 'openai';
 
@@ -14,6 +13,32 @@ app.use(express.json());
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const dataBuffer = fs.readFileSync('./MBVT20222.pdf');
+
+let textoMBFT = '';
+
+async function carregarMBFT() {
+  try {
+    const buffer = await fs.readFile('./MBVT20222.pdf');
+    const data = await pdf(buffer);
+    textoMBFT = data.text;
+    console.log("✅ MBFT carregado com sucesso.");
+  } catch (error) {
+    console.error("Erro ao carregar MBFT:", error);
+  }
+}
+
+async function buscarNoMBFT(termo) {
+  if (!textoMBFT) return null;
+
+  const regex = new RegExp(`\\b${termo}\\b[\\s\\S]{0,800}`, 'i');
+  const match = textoMBFT.match(regex);
+
+  if (match) {
+    return `📘 Achei essa referência no MBFT:\n\n${match[0].trim()}`;
+  }
+
+  return null;
+}
 
 const promptBase = `Você é um assistente virtual de vendas da MG Multas.
 
@@ -86,7 +111,7 @@ app.post('/chat', async (req, res) => {
 
     res.json({ reply: chat.choices[0].message.content });
   } catch (err) {
-    console.error(err);
+    console.error("Erro no /chat:", err);
     res.status(500).json({ error: 'Erro ao gerar resposta.' });
   }
 });
@@ -95,7 +120,9 @@ app.get('/', (req, res) => {
   res.send('Assistente MG Multas online');
 });
 
+// Inicialização
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
+app.listen(port, async () => {
+  await carregarMBFT();
   console.log(`Servidor rodando na porta ${port}`);
 });
