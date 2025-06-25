@@ -2,10 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import fs from 'fs/promises';
-import { existsSync } from 'fs';
 import path from 'path';
-import pkg from 'pdf-parse';
-const pdf = pkg.default;
 import OpenAI from 'openai';
 
 dotenv.config();
@@ -16,29 +13,38 @@ app.use(express.json());
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-let textoMBFT = '';
+let mbftDados = [];
 
 async function carregarMBFT() {
   try {
-    const pdfPath = path.resolve('./MBVT20222.pdf');
-    if (!existsSync(pdfPath)) {
-      console.error('❌ Arquivo MBVT20222.pdf não encontrado em:', pdfPath);
-      return;
-    }
-    const buffer = await fs.readFile(pdfPath);
-    const data = await pdf(buffer);
-    textoMBFT = data.text;
-    console.log("✅ MBFT carregado com sucesso.");
+    const jsonPath = path.resolve('./mbft.json');
+    const file = await fs.readFile(jsonPath, 'utf-8');
+    mbftDados = JSON.parse(file);
+    console.log(`✅ MBFT carregado com ${mbftDados.length} infrações.`);
   } catch (error) {
-    console.error("❌ Erro ao carregar MBFT:", error);
+    console.error("❌ Erro ao carregar mbft.json:", error);
   }
 }
 
-async function buscarNoMBFT(termo) {
-  if (!textoMBFT) return null;
-  const regex = new RegExp(`\\b${termo}\\b[\\s\\S]{0,800}`, 'i');
-  const match = textoMBFT.match(regex);
-  if (match) return `📘 Achei essa referência no MBFT:\n\n${match[0].trim()}`;
+function buscarNoMBFT(termo) {
+  if (!termo || mbftDados.length === 0) return null;
+
+  const termoLower = termo.toLowerCase();
+
+  const resultado = mbftDados.find(item =>
+    item.codigo === termo ||
+    item.descricao.toLowerCase().includes(termoLower)
+  );
+
+  if (resultado) {
+    return `📘 Infração encontrada no MBFT:
+- Código: ${resultado.codigo}
+- Descrição: ${resultado.descricao}
+- Gravidade: ${resultado.gravidade}
+- Pontuação: ${resultado.pontuacao}
+- Valor: ${resultado.valor}`;
+  }
+
   return null;
 }
 
@@ -85,7 +91,7 @@ app.post('/chat', async (req, res) => {
   if (!message) return res.status(400).json({ error: 'Mensagem obrigatória.' });
 
   try {
-    const respostaMBFT = await buscarNoMBFT(message);
+    const respostaMBFT = buscarNoMBFT(message);
     if (respostaMBFT) return res.json({ reply: respostaMBFT });
 
     const chat = await openai.chat.completions.create({
