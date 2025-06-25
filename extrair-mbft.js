@@ -1,41 +1,47 @@
-// extrair-mbft.js
 import fs from 'fs/promises';
-import pdf from 'pdf-parse';
+import pdfParse from 'pdf-parse';
 
 const caminhoPDF = './MBVT20222.pdf';
 const caminhoJSON = './mbft.json';
 
-function extrairInfrações(texto) {
-  const linhas = texto.split('\n');
-  const regex = /(\d{3}-\d{2})\s*-\s*(.*?)\s*Gravidade:\s*(.*?)\s*Valor:\s*R\$\s*([\d,]+)\s*Pontos:\s*(\d+)/gi;
-
-  const resultado = [];
-  let textoUnificado = linhas.join(' ').replace(/\s+/g, ' ');
-
-  let match;
-  while ((match = regex.exec(textoUnificado)) !== null) {
-    resultado.push({
-      codigo: match[1],
-      descricao: match[2].trim(),
-      gravidade: match[3].trim(),
-      valor: `R$ ${match[4]}`,
-      pontuacao: parseInt(match[5])
-    });
-  }
-
-  return resultado;
-}
-
-(async () => {
+async function extrairInfraçõesDoPDF() {
   try {
     const buffer = await fs.readFile(caminhoPDF);
-    const data = await pdf(buffer);
+    const data = await pdfParse(buffer);
+    const texto = data.text;
 
-    const infracoes = extrairInfrações(data.text);
+    const linhas = texto.split('\n');
+    const infracoes = [];
 
-    await fs.writeFile(caminhoJSON, JSON.stringify(infracoes, null, 2), 'utf8');
-    console.log(`✅ ${infracoes.length} infrações salvas no mbft.json.`);
+    for (let i = 0; i < linhas.length; i++) {
+      const linha = linhas[i];
+
+      // Regex que identifica linhas de infração com código no padrão "XXX-XX"
+      const match = linha.match(/(\d{3}-\d{2})\s+-\s+(.*)/);
+      if (match) {
+        const codigo = match[1];
+        const descricao = match[2].trim();
+
+        // Procurar informações adicionais como gravidade, valor, pontuação
+        const gravidade = linhas[i + 1]?.match(/Gravidade:\s+(.*)/)?.[1] || '';
+        const valor = linhas[i + 2]?.match(/Valor:\s+(.*)/)?.[1] || '';
+        const pontuacao = linhas[i + 3]?.match(/Pontuação:\s+(\d+)/)?.[1] || '';
+
+        infracoes.push({
+          codigo,
+          descricao,
+          gravidade,
+          valor,
+          pontuacao: parseInt(pontuacao || 0)
+        });
+      }
+    }
+
+    await fs.writeFile(caminhoJSON, JSON.stringify(infracoes, null, 2), 'utf-8');
+    console.log(`✅ ${infracoes.length} infrações salvas no mbft.json`);
   } catch (err) {
-    console.error('Erro ao extrair MBFT:', err);
+    console.error('❌ Erro ao extrair infrações:', err.message);
   }
-})();
+}
+
+extrairInfraçõesDoPDF();
