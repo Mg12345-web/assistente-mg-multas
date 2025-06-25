@@ -1,37 +1,9 @@
 [
   {
-    "codigo": "518-00",
-    "descricao": "Dirigir sem possuir CNH ou com CNH cassada",
+    "codigo": "501-00",
+    "descricao": "Dirigir veículo sem possuir CNH, PPD ou ACC",
     "gravidade": "Gravíssima",
     "valor": "R$ 880,41",
-    "pontuacao": 7
-  },
-  {
-    "codigo": "537-70",
-    "descricao": "Transitar em velocidade superior à máxima permitida em até 20%",
-    "gravidade": "Média",
-    "valor": "R$ 130,16",
-    "pontuacao": 4
-  },
-  {
-    "codigo": "537-80",
-    "descricao": "Transitar em velocidade superior à máxima permitida entre 20% e 50%",
-    "gravidade": "Grave",
-    "valor": "R$ 195,23",
-    "pontuacao": 5
-  },
-  {
-    "codigo": "537-90",
-    "descricao": "Transitar em velocidade superior à máxima permitida em mais de 50%",
-    "gravidade": "Gravíssima (3x)",
-    "valor": "R$ 880,41",
-    "pontuacao": 7
-  },
-  {
-    "codigo": "518-11",
-    "descricao": "Avançar sinal vermelho do semáforo",
-    "gravidade": "Gravíssima",
-    "valor": "R$ 293,47",
     "pontuacao": 7
   }
 ]
