@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node index.js"
+    "extrair": "node extrair-mbft.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
