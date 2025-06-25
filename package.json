@@ -1,16 +1,17 @@
 {
   "name": "assistente-mg-multas",
   "version": "1.0.0",
+  "description": "Assistente virtual para atendimento MG Multas com integração ao MBFT",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node index.js"
   },
- "dependencies": {
-  "express": "^4.18.2",
-  "cors": "^2.8.5",
-  "dotenv": "^16.0.3",
-  "pdf-parse": "^1.1.1",
-  "openai": "^4.0.0"
-}
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "openai": "^4.0.0",
+    "pdf-parse": "^1.1.1"
+  }
 }
