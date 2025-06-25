@@ -1,9 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import fs from 'fs/promises';
-import path from 'path';
 import OpenAI from 'openai';
+import { carregarJSONMBFT, buscarInfraMBFT } from './mbft-helper.js';
 
 dotenv.config();
 
@@ -91,8 +90,12 @@ app.post('/chat', async (req, res) => {
   if (!message) return res.status(400).json({ error: 'Mensagem obrigatória.' });
 
   try {
-    const respostaMBFT = buscarNoMBFT(message);
-    if (respostaMBFT) return res.json({ reply: respostaMBFT });
+    const infra = buscarInfraMBFT(message);
+    if (infra) {
+      return res.json({
+        reply: `📘 Achei essa infração no MBFT:\n\n🆔 Código: ${infra.codigo}\n📝 Descrição: ${infra.descricao}\n⚠️ Gravidade: ${infra.gravidade}\n💸 Valor: ${infra.valor}\n📊 Pontuação: ${infra.pontuacao}`
+      });
+    }
 
     const chat = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
@@ -116,6 +119,6 @@ app.get('/', (req, res) => {
 
 const port = process.env.PORT || 3000;
 app.listen(port, async () => {
-  await carregarMBFT();
+  await carregarJSONMBFT();
   console.log(`🚀 Servidor rodando na porta ${port}`);
 });
