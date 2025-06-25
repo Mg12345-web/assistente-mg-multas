@@ -101,6 +101,7 @@ app.get('/', (req, res) => {
   res.send('Assistente MG Multas online');
 });
 
+console.log("📄 Buscando arquivo:", process.cwd() + '/MBVT20222.pdf');
 const port = process.env.PORT || 3000;
 app.listen(port, async () => {
   await carregarMBFT();
