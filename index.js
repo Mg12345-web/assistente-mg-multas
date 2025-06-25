@@ -1,8 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import fs from 'fs/promises';
+import path from 'path';
 import OpenAI from 'openai';
-import { carregarJSONMBFT, buscarInfraMBFT } from './mbft-helper.js';
 
 dotenv.config();
 
@@ -14,7 +15,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 let mbftDados = [];
 
-async function carregarMBFT() {
+async function carregarJSONMBFT() {
   try {
     const jsonPath = path.resolve('./mbft.json');
     const file = await fs.readFile(jsonPath, 'utf-8');
@@ -25,26 +26,14 @@ async function carregarMBFT() {
   }
 }
 
-function buscarNoMBFT(termo) {
+function buscarInfraMBFT(termo) {
   if (!termo || mbftDados.length === 0) return null;
 
   const termoLower = termo.toLowerCase();
-
-  const resultado = mbftDados.find(item =>
+  return mbftDados.find(item =>
     item.codigo === termo ||
     item.descricao.toLowerCase().includes(termoLower)
   );
-
-  if (resultado) {
-    return `📘 Infração encontrada no MBFT:
-- Código: ${resultado.codigo}
-- Descrição: ${resultado.descricao}
-- Gravidade: ${resultado.gravidade}
-- Pontuação: ${resultado.pontuacao}
-- Valor: ${resultado.valor}`;
-  }
-
-  return null;
 }
 
 const promptBase = `Você é um assistente virtual de vendas da MG Multas.
