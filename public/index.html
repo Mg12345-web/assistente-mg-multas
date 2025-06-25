@@ -1,0 +1,77 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Assistente MG Multas</title>
+  <style>
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f0f2f5; }
+    .app { display: flex; height: 100vh; }
+    .sidebar { width: 30%; background: #fff; border-right: 1px solid #ddd; display: flex; flex-direction: column; }
+    .sidebar-header { background: #008069; color: #fff; padding: 15px; font-weight: bold; }
+    .contact { padding: 10px 15px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #eee; }
+    .contact img { width: 40px; height: 40px; border-radius: 50%; }
+    .chat-container { flex: 1; display: flex; flex-direction: column; background: #efeae2; }
+    .header { background: #008069; color: #fff; padding: 15px; font-weight: bold; }
+    .messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    .msg { max-width: 65%; padding: 10px 14px; border-radius: 8px; font-size: 14px; line-height: 1.4; white-space: pre-wrap; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); }
+    .user { align-self: flex-end; background: #d9fdd3; border-bottom-right-radius: 0; }
+    .bot { align-self: flex-start; background: #fff; border-bottom-left-radius: 0; }
+    .input-area { display: flex; padding: 10px; background: #f0f0f0; border-top: 1px solid #ccc; }
+    input { flex: 1; padding: 12px 15px; border: none; border-radius: 20px; font-size: 14px; }
+    button { margin-left: 10px; background: #008069; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-size: 14px; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-header">📱 Conversas</div>
+    <div class="contact"><img src="https://cdn-icons-png.flaticon.com/512/847/847969.png"><span>Cliente MG Multas</span></div>
+  </div>
+  <div class="chat-container">
+    <div class="header">👤 Cliente MG Multas</div>
+    <div class="messages" id="messages"></div>
+    <div class="input-area">
+      <input id="input" placeholder="Digite aqui..." onkeypress="if(event.key==='Enter')sendMessage()" />
+      <button onclick="sendMessage()">Enviar</button>
+    </div>
+  </div>
+</div>
+<script>
+  const input = document.getElementById("input");
+  const messages = document.getElementById("messages");
+
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+
+    appendMessage(text, 'user');
+    input.value = "...";
+
+    try {
+      const response = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text })
+      });
+      const data = await response.json();
+      appendMessage(data.reply || "Erro ao responder.", 'bot');
+    } catch {
+      appendMessage("Erro de conexão com o servidor.", 'bot');
+    }
+    input.value = "";
+  }
+
+  function appendMessage(content, sender) {
+    const div = document.createElement("div");
+    div.className = `msg ${sender}`;
+    div.innerText = content;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  window.onload = () => appendMessage("Oi! Sou a assistente da MG Multas 👋 Como posso te ajudar hoje?", 'bot');
+</script>
+</body>
+</html>
