@@ -4,16 +4,16 @@ FROM node:20
 # Define diretório de trabalho dentro do container
 WORKDIR /app
 
-# Copia apenas os arquivos de dependências para aproveitar cache
+# Copia apenas arquivos de dependência para aproveitar cache
 COPY package*.json ./
 
-# Instala dependências
-RUN npm install
+# Instala dependências (com pdf-parse corrigido)
+RUN npm install pdf-parse@1.0.1 && npm install
 
-# Copia todo o restante do projeto, incluindo o PDF
+# Copia todos os arquivos do projeto, incluindo o PDF
 COPY . .
 
-# Expondo a porta do app (Railway define automaticamente via variável de ambiente)
+# Expondo a porta usada pelo app
 EXPOSE 3000
 
 # Comando padrão para iniciar o servidor
