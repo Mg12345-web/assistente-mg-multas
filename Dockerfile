@@ -13,6 +13,9 @@ RUN npm install
 # Copia todo o projeto
 COPY . .
 
+# Instala lib para leitura de PDF
+RUN npm install pdf-parse
+
 # Expõe a porta usada pelo app
 EXPOSE 3000
 
