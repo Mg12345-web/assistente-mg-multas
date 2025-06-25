@@ -1,7 +1,9 @@
-// index.js (versão atualizada para openai v4 + ES Modules)
+// index.js
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import fs from 'fs';
+import pdf from 'pdf-parse';
 import OpenAI from 'openai';
 
 dotenv.config();
@@ -10,9 +12,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const dataBuffer = fs.readFileSync('./MBVT20222.pdf');
 
 const promptBase = `Você é um assistente virtual de vendas da MG Multas.
 
@@ -52,11 +53,28 @@ Pode aplicar até 15% de desconto se a vendedora disser que o cliente não paga.
 
 Você pode rir junto se ela brincar, mas mantenha sempre o foco na venda.`;
 
+async function buscarNoMBFT(termo) {
+  const data = await pdf(dataBuffer);
+  const texto = data.text;
+  const regex = new RegExp(termo, 'i');
+  const index = texto.search(regex);
+  if (index !== -1) {
+    const trecho = texto.slice(index, index + 800);
+    return `📘 Achei essa referência no MBFT:
+
+${trecho.trim()}`;
+  }
+  return null;
+}
+
 app.post('/chat', async (req, res) => {
   const { message } = req.body;
   if (!message) return res.status(400).json({ error: 'Mensagem obrigatória.' });
 
   try {
+    const respostaMBFT = await buscarNoMBFT(message);
+    if (respostaMBFT) return res.json({ reply: respostaMBFT });
+
     const chat = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [
@@ -69,7 +87,7 @@ app.post('/chat', async (req, res) => {
     res.json({ reply: chat.choices[0].message.content });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Erro ao gerar resposta da IA.' });
+    res.status(500).json({ error: 'Erro ao gerar resposta.' });
   }
 });
 
