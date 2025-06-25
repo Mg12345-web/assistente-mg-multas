@@ -12,7 +12,6 @@ app.use(cors());
 app.use(express.json());
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const dataBuffer = fs.readFileSync('./MBVT20222.pdf');
 
 let textoMBFT = '';
 
@@ -29,14 +28,9 @@ async function carregarMBFT() {
 
 async function buscarNoMBFT(termo) {
   if (!textoMBFT) return null;
-
   const regex = new RegExp(`\\b${termo}\\b[\\s\\S]{0,800}`, 'i');
   const match = textoMBFT.match(regex);
-
-  if (match) {
-    return `📘 Achei essa referência no MBFT:\n\n${match[0].trim()}`;
-  }
-
+  if (match) return `📘 Achei essa referência no MBFT:\n\n${match[0].trim()}`;
   return null;
 }
 
@@ -106,9 +100,8 @@ app.get('/', (req, res) => {
   res.send('Assistente MG Multas online');
 });
 
-// Inicialização
 const port = process.env.PORT || 3000;
 app.listen(port, async () => {
   await carregarMBFT();
-  console.log(`Servidor rodando na porta ${port}`);
+  console.log(`🚀 Servidor rodando na porta ${port}`);
 });
