@@ -1,23 +1,20 @@
 # Usa imagem oficial do Node.js
 FROM node:20
 
-# Cria diretório de trabalho
+# Define diretório de trabalho dentro do container
 WORKDIR /app
 
-# Copia os arquivos de dependências
+# Copia apenas os arquivos de dependências para aproveitar cache de build
 COPY package*.json ./
 
-# Instala as dependências
+# Instala dependências declaradas no package.json (inclui pdf-parse se já estiver listado)
 RUN npm install
 
-# Copia todo o projeto
+# Copia todos os arquivos do projeto (incluindo MBVT20222.pdf)
 COPY . .
 
-# Instala lib para leitura de PDF
-RUN npm install pdf-parse
-
-# Expõe a porta usada pelo app
+# Expondo a porta do app (caso use Railway, ela vai setar automaticamente via env)
 EXPOSE 3000
 
-# Comando para rodar o servidor
+# Comando padrão para iniciar o servidor
 CMD ["node", "index.js"]
